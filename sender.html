@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CryptoBridge — Sender</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#05070a;--surface:#0d1117;--card:#111820;--border:#1e2d3d;--border2:#253547;
+--text:#e2eaf3;--muted:#5a7a99;--hint:#2d4558;
+--cyan:#00d4ff;--cyan-dim:#003a4a;
+--green:#00e87a;--green-dim:#003320;
+--amber:#ffb020;--amber-dim:#3d2800;
+--purple:#b87fff;--purple-dim:#2a1a4a;
+--red:#ff4d6d;
+--font-body:'Space Grotesk',sans-serif;
+--font-display:'Syne',sans-serif;
+--font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+.page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 20px 80px}
+
+header{text-align:center;padding:48px 0 36px}
+.pc-badge{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--cyan);background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.25);border-radius:6px;padding:8px 18px;margin-bottom:24px;text-transform:uppercase;}
+.pc-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+header h1{font-family:var(--font-display);font-size:clamp(32px,5vw,58px);font-weight:800;letter-spacing:-2px;line-height:1;color:var(--text);margin-bottom:12px;}
+header h1 span{color:var(--cyan)}
+
+.how-box{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:14px;padding:20px 24px;margin-bottom:32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.how-step{text-align:center}
+.how-num{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--cyan);margin-bottom:6px}
+.how-txt{font-size:12px;color:var(--muted);line-height:1.6;font-weight:300}
+@media(max-width:600px){.how-box{grid-template-columns:1fr}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.card.glow-cyan{border-color:rgba(0,212,255,0.35);box-shadow:0 0 40px rgba(0,212,255,0.06)}
+.card.glow-green{border-color:rgba(0,232,122,0.35);box-shadow:0 0 40px rgba(0,232,122,0.06)}
+.card.glow-amber{border-color:rgba(255,176,32,0.35);box-shadow:0 0 40px rgba(255,176,32,0.06)}
+.card.glow-purple{border-color:rgba(184,127,255,0.35);box-shadow:0 0 40px rgba(184,127,255,0.06)}
+.card.locked{opacity:0.45;pointer-events:none}
+
+.card-head{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.015);}
+.step-num{width:34px;height:34px;border-radius:8px;font-family:var(--font-mono);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sn-c{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)}
+.sn-g{background:rgba(0,232,122,0.1);color:var(--green);border:1px solid rgba(0,232,122,0.3)}
+.sn-a{background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.3)}
+.sn-p{background:rgba(184,127,255,0.1);color:var(--purple);border:1px solid rgba(184,127,255,0.3)}
+.card-title{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:-0.3px}
+.card-sub{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.card-body{padding:22px}
+
+label.fl{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:18px}
+label.fl:first-child{margin-top:0}
+textarea,select,input[type=text]{width:100%;font-family:var(--font-mono);font-size:12.5px;font-weight:300;background:rgba(0,0,0,0.35);border:1px solid var(--border2);border-radius:10px;color:var(--text);padding:12px 16px;outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.7;}
+select{font-family:var(--font-body);font-size:13px;resize:none;cursor:pointer}
+select option{background:#0d1117}
+textarea:focus,select:focus,input:focus{border-color:rgba(0,212,255,0.4);box-shadow:0 0 0 3px rgba(0,212,255,0.06);}
+
+.data-box{font-family:var(--font-mono);font-size:11px;font-weight:300;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;padding:12px 16px;word-break:break-all;white-space:pre-wrap;min-height:44px;max-height:140px;overflow-y:auto;line-height:1.75;color:var(--muted);}
+.data-box.c{border-color:rgba(0,212,255,0.25);background:rgba(0,212,255,0.04);color:#80e8ff}
+.data-box.g{border-color:rgba(0,232,122,0.25);background:rgba(0,232,122,0.04);color:#80ffb0}
+.data-box.a{border-color:rgba(255,176,32,0.25);background:rgba(255,176,32,0.04);color:#ffd080}
+.data-box.p{border-color:rgba(184,127,255,0.25);background:rgba(184,127,255,0.04);color:#d4b8ff}
+.data-box::-webkit-scrollbar{width:3px}
+.data-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+.key-split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.key-split{grid-template-columns:1fr}}
+
+.btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+button{flex:1;min-width:130px;padding:12px 20px;border-radius:10px;font-family:var(--font-body);font-size:13px;font-weight:500;letter-spacing:0.3px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+button:active{transform:scale(0.97)}
+.btn-ghost{background:rgba(255,255,255,0.03);border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover{background:rgba(255,255,255,0.06)}
+.btn-cyan{background:linear-gradient(135deg,#003a52,#005a7a);border:1px solid rgba(0,212,255,0.35);color:#a0f0ff;box-shadow:0 4px 20px rgba(0,212,255,0.12)}
+.btn-cyan:hover{filter:brightness(1.15)}
+.btn-green{background:linear-gradient(135deg,#003320,#005038);border:1px solid rgba(0,232,122,0.35);color:#a0ffc8;box-shadow:0 4px 20px rgba(0,232,122,0.12)}
+.btn-green:hover{filter:brightness(1.15)}
+.btn-amber{background:linear-gradient(135deg,#3d2800,#5a3a00);border:1px solid rgba(255,176,32,0.35);color:#ffd080;box-shadow:0 4px 20px rgba(255,176,32,0.12)}
+.btn-amber:hover{filter:brightness(1.15)}
+.btn-purple{background:linear-gradient(135deg,#2a1a4a,#3d2866);border:1px solid rgba(184,127,255,0.35);color:#d4b8ff;box-shadow:0 4px 20px rgba(184,127,255,0.12)}
+.btn-purple:hover{filter:brightness(1.15)}
+.btn-export{background:linear-gradient(135deg,#1a3a00,#2d5a00);border:1px solid rgba(0,232,122,0.5);color:#a0ffc8;font-size:14px;font-weight:600;padding:16px 24px;box-shadow:0 6px 30px rgba(0,232,122,0.2);flex:unset;width:100%;}
+.btn-export:hover{filter:brightness(1.2)}
+
+.alert{display:none;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;margin-top:14px;font-size:13px;font-weight:400;}
+.alert.show{display:flex;animation:rise 0.3s ease}
+.alert.success{background:rgba(0,232,122,0.06);border:1px solid rgba(0,232,122,0.22);color:var(--green)}
+.alert.info{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.22);color:var(--cyan)}
+.alert.warn{background:rgba(255,176,32,0.06);border:1px solid rgba(255,176,32,0.22);color:var(--amber)}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:blink 1.8s infinite}
+.success .alert-dot{background:var(--green)}
+.info .alert-dot{background:var(--cyan)}
+.warn .alert-dot{background:var(--amber)}
+
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.chip{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;padding:5px 12px;border-radius:6px;display:flex;flex-direction:column;gap:3px;}
+.chip .cl{opacity:0.6;font-size:9px}
+.chip .cv{font-weight:500}
+.chip-c{background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);color:var(--cyan)}
+.chip-g{background:rgba(0,232,122,0.07);border:1px solid rgba(0,232,122,0.2);color:var(--green)}
+.chip-a{background:rgba(255,176,32,0.07);border:1px solid rgba(255,176,32,0.2);color:var(--amber)}
+
+.data-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.copy-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:var(--muted);cursor:pointer;padding:4px 10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;transition:all 0.2s;flex-shrink:0;}
+.copy-btn:hover{color:var(--cyan);border-color:rgba(0,212,255,0.3)}
+
+.pkg-box{background:rgba(0,0,0,0.5);border:1px solid rgba(0,232,122,0.3);border-radius:12px;padding:18px;font-family:var(--font-mono);font-size:10.5px;color:#80ffb0;word-break:break-all;white-space:pre-wrap;max-height:320px;overflow-y:auto;line-height:1.8;margin-top:16px;}
+.pkg-box::-webkit-scrollbar{width:3px}
+.pkg-box::-webkit-scrollbar-thumb{background:rgba(0,232,122,0.3);border-radius:4px}
+
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* FOOTER */
+footer{text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:60px}
+.footer-logo{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--cyan);letter-spacing:1px;margin-bottom:6px}
+.footer-algo{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:20px}
+.footer-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:16px auto}
+.footer-by{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.footer-names{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--green);letter-spacing:0.5px;margin-bottom:8px}
+.footer-dept{font-family:var(--font-mono);font-size:12px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="pc-badge"><div class="pc-dot"></div>CryptoBridge &nbsp;·&nbsp; Sender</div>
+  <h1>Crypto<span>Bridge</span></h1>
+</header>
+
+<div class="how-box">
+  <div class="how-step">
+    <div class="how-num">STEP 01</div>
+    <div class="how-txt">Generate RSA keys on this machine</div>
+  </div>
+  <div class="how-step">
+    <div class="how-num">STEP 02 – 04</div>
+    <div class="how-txt">Type message, generate AES key, encrypt everything</div>
+  </div>
+  <div class="how-step">
+    <div class="how-num">STEP 05</div>
+    <div class="how-txt">Copy the Transfer Package and send to the Receiver</div>
+  </div>
+</div>
+
+<!-- STEP 1: RSA Key Generation -->
+<div id="card1" class="card glow-cyan">
+  <div class="card-head">
+    <div class="step-num sn-c">01</div>
+    <div><div class="card-title">Generate RSA Key Pair</div></div>
+    <span class="card-sub">ASYMMETRIC</span>
+  </div>
+  <div class="card-body">
+    <label class="fl">Key Size</label>
+    <select id="keybits">
+      <option value="512">512-bit — Demo only (insecure)</option>
+      <option value="1024">1024-bit — Legacy</option>
+      <option value="2048" selected>2048-bit — Recommended</option>
+    </select>
+
+    <div style="margin-top:18px" class="key-split">
+      <div>
+        <label class="fl" style="margin-top:0">Public Key — travels with the package</label>
+        <div class="data-box c" id="pub-out" style="font-size:10px">Click "Generate RSA Keys" →</div>
+      </div>
+      <div>
+        <label class="fl" style="margin-top:0">⚠ Private Key — send to Receiver securely!</label>
+        <div class="data-box" id="priv-out" style="font-size:10px;color:#ff9999">—</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-cyan" onclick="genKeys()">⟳ Generate RSA Key Pair</button>
+      <button class="btn-ghost" id="btn-copy-priv" onclick="copyPrivKey()" style="display:none">Copy Private Key →</button>
+    </div>
+
+    <div class="alert info" id="key-alert">
+      <div class="alert-dot"></div>
+      <span>Keys ready! <strong>Copy the Private Key and transfer it to the Receiver securely</strong> (e.g. USB drive) before continuing.</span>
+    </div>
+    <div class="chips" id="key-chips" style="display:none">
+      <div class="chip chip-c"><span class="cl">Algorithm</span><span class="cv">RSA-OAEP</span></div>
+      <div class="chip chip-c"><span class="cl">Hash</span><span class="cv">SHA-256</span></div>
+      <div class="chip chip-g" id="ksize-chip"><span class="cl">Key Size</span><span class="cv">2048-bit</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: Message -->
+<div id="card2" class="card locked">
+  <div class="card-head">
+    <div class="step-num sn-g">02</div>
+    <div><div class="card-title">Your Secret Message</div></div>
+    <span class="card-sub">PLAINTEXT</span>
+  </div>
+  <div class="card-body">
+    <label class="fl">Type or paste your message</label>
+    <textarea id="msg" rows="5" placeholder="Enter any secret message — a password, a document, classified data…"></textarea>
+    <div class="chips" id="msg-chips"></div>
+    <div class="btn-row">
+      <button class="btn-green" onclick="confirmMsg()">Confirm Message →</button>
+    </div>
+    <div class="alert success" id="msg-alert">
+      <div class="alert-dot"></div>
+      <span id="msg-alert-text">Message confirmed.</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: AES Key -->
+<div id="card3" class="card locked">
+  <div class="card-head">
+    <div class="step-num sn-a">03</div>
+    <div><div class="card-title">Generate AES-256 Session Key + IV</div></div>
+    <span class="card-sub">SYMMETRIC</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.75;font-weight:300">
+      A random 256-bit AES key and 128-bit IV are generated for this session only. The AES key will be wrapped (encrypted) using RSA so only the Receiver can unlock it.
+    </p>
+    <label class="fl">AES-256 Key (hex)</label>
+    <div class="data-box a" id="aes-key-out">Click "Generate AES Key + IV" →</div>
+    <label class="fl">Initialization Vector — IV (hex)</label>
+    <div class="data-box" id="iv-out">—</div>
+    <div class="btn-row">
+      <button class="btn-amber" onclick="genAES()">⟳ Generate AES Key + IV</button>
+    </div>
+    <div class="alert warn" id="aes-alert">
+      <div class="alert-dot"></div>
+      <span>AES key generated. This will encrypt your message, then get wrapped by RSA.</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4: Encrypt -->
+<div id="card4" class="card locked">
+  <div class="card-head">
+    <div class="step-num sn-p">04</div>
+    <div><div class="card-title">Encrypt Everything</div></div>
+    <span class="card-sub">AES ENCRYPTS · RSA WRAPS KEY</span>
+  </div>
+  <div class="card-body">
+    <div class="data-header">
+      <label class="fl" style="margin:0">Ciphertext — AES-256-CBC encrypted message (Base64)</label>
+      <div class="copy-btn" onclick="copyField('cipher-out')">COPY</div>
+    </div>
+    <div class="data-box g" id="cipher-out">—</div>
+
+    <div class="data-header" style="margin-top:16px">
+      <label class="fl" style="margin:0">Encrypted AES Key — RSA-OAEP wrapped (Base64)</label>
+      <div class="copy-btn" onclick="copyField('enc-key-out')">COPY</div>
+    </div>
+    <div class="data-box c" id="enc-key-out">—</div>
+
+    <div class="data-header" style="margin-top:16px">
+      <label class="fl" style="margin:0">IV — Initialization Vector (hex)</label>
+    </div>
+    <div class="data-box" id="iv-disp">—</div>
+
+    <div class="btn-row">
+      <button class="btn-purple" onclick="encAll()">🔒 Encrypt Message</button>
+    </div>
+    <div class="alert success" id="enc-alert">
+      <div class="alert-dot"></div>
+      <span>Encryption complete! Scroll down to export the Transfer Package for the Receiver.</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: Export Package -->
+<div id="card5" class="card locked" style="border-color:rgba(0,232,122,0.4);box-shadow:0 0 50px rgba(0,232,122,0.08)">
+  <div class="card-head">
+    <div class="step-num sn-g">05</div>
+    <div><div class="card-title">Export Transfer Package → Send to Receiver</div></div>
+    <span class="card-sub">TRANSMIT</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.8;font-weight:300">
+      This JSON package contains <strong style="color:var(--text)">everything the Receiver needs to decrypt</strong> your message —
+      except the private key (which you already sent to the Receiver separately).
+      Send this via any channel: email, chat, USB, anywhere.
+    </p>
+    <p style="font-size:12px;color:var(--green);font-family:var(--font-mono);margin-bottom:4px">✓ Safe to send over public internet — useless without the private key.</p>
+
+    <div class="pkg-box" id="pkg-out">[ Click "Build Transfer Package" to generate ]</div>
+
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn-export" onclick="buildPackage()">📦 Build Transfer Package</button>
+    </div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn-green" onclick="copyPackage()" id="btn-copy-pkg" style="display:none">Copy Package to Clipboard</button>
+      <button class="btn-ghost" onclick="downloadPackage()" id="btn-dl-pkg" style="display:none">Download as .json file</button>
+    </div>
+
+    <div class="alert success" id="pkg-alert" style="display:none">
+      <div class="alert-dot"></div>
+      <span>Package copied! Send this JSON text to the Receiver — they will paste it into CryptoBridge Receiver.</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<footer>
+  <div class="footer-logo">CryptoBridge</div>
+  <div class="footer-algo">AES-256-CBC + RSA-OAEP Hybrid Encryption &nbsp;·&nbsp; All operations run locally in browser</div>
+  <div class="footer-divider"></div>
+  <div class="footer-by">Developed by</div>
+  <div class="footer-names">Suganthan M &amp; Yashwanth Sakthi M</div>
+  <div class="footer-dept">Dept. of ECE &nbsp;|&nbsp; Networking Engineers</div>
+</footer>
+
+<script>
+let kp=null, ak=null, akr=null, iv=null, ct=null, ek=null, privKeyRaw=null;
+const $=id=>document.getElementById(id);
+
+const hex=b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+const b64=b=>{const u=new Uint8Array(b);let s='';u.forEach(c=>s+=String.fromCharCode(c));return btoa(s).match(/.{1,64}/g).join('\n');};
+const b64flat=b=>{const u=new Uint8Array(b);let s='';u.forEach(c=>s+=String.fromCharCode(c));return btoa(s);};
+
+function unlock(id){$(id).classList.remove('locked');}
+
+async function genKeys(){
+  const bits=parseInt($('keybits').value);
+  $('pub-out').textContent='Generating… (may take a moment for 2048-bit)';
+  $('priv-out').textContent='…';
+  try{
+    kp=await crypto.subtle.generateKey(
+      {name:'RSA-OAEP',modulusLength:bits,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['encrypt','decrypt']
+    );
+    const pu=await crypto.subtle.exportKey('spki',kp.publicKey);
+    const pr=await crypto.subtle.exportKey('pkcs8',kp.privateKey);
+    privKeyRaw=pr;
+    $('pub-out').textContent='-----BEGIN PUBLIC KEY-----\n'+b64(pu)+'\n-----END PUBLIC KEY-----';
+    $('priv-out').textContent='-----BEGIN PRIVATE KEY-----\n'+b64(pr)+'\n-----END PRIVATE KEY-----';
+    $('key-alert').classList.add('show');
+    $('key-chips').style.display='flex';
+    $('ksize-chip').querySelector('.cv').textContent=bits+'-bit';
+    $('btn-copy-priv').style.display='';
+    unlock('card2');
+  }catch(e){$('pub-out').textContent='Error: '+e.message;}
+}
+
+function copyPrivKey(){
+  if(!privKeyRaw){alert('Generate keys first.');return;}
+  const pem='-----BEGIN PRIVATE KEY-----\n'+b64(privKeyRaw)+'\n-----END PRIVATE KEY-----';
+  navigator.clipboard.writeText(pem).then(()=>{
+    $('btn-copy-priv').textContent='✓ Copied!';
+    setTimeout(()=>$('btn-copy-priv').textContent='Copy Private Key →',2000);
+  });
+}
+
+function confirmMsg(){
+  const m=$('msg').value.trim();
+  if(!m){alert('Please type a message.');return;}
+  const chars=m.length,bytes=new TextEncoder().encode(m).length;
+  $('msg-alert').classList.add('show');
+  $('msg-alert-text').textContent='Message confirmed: '+chars+' chars / '+bytes+' bytes';
+  $('msg-chips').innerHTML=`
+    <div class="chip chip-g"><span class="cl">Characters</span><span class="cv">${chars}</span></div>
+    <div class="chip chip-g"><span class="cl">Bytes (UTF-8)</span><span class="cv">${bytes}</span></div>
+    <div class="chip chip-c"><span class="cl">Encoding</span><span class="cv">UTF-8</span></div>
+  `;
+  unlock('card3');
+}
+
+$('msg').addEventListener('input',function(){
+  if(this.value.trim()){
+    const c=this.value.length,b=new TextEncoder().encode(this.value).length;
+    $('msg-chips').innerHTML=`<div class="chip chip-g"><span class="cl">Characters</span><span class="cv">${c}</span></div><div class="chip chip-g"><span class="cl">Bytes</span><span class="cv">${b}</span></div>`;
+  }
+});
+
+async function genAES(){
+  ak=await crypto.subtle.generateKey({name:'AES-CBC',length:256},true,['encrypt','decrypt']);
+  akr=await crypto.subtle.exportKey('raw',ak);
+  iv=crypto.getRandomValues(new Uint8Array(16));
+  $('aes-key-out').textContent=hex(akr);
+  $('iv-out').textContent=hex(iv);
+  $('aes-alert').classList.add('show');
+  unlock('card4');
+}
+
+async function encAll(){
+  if(!kp){alert('Generate RSA keys (Step 01) first.');return;}
+  if(!ak){alert('Generate AES key (Step 03) first.');return;}
+  const msg=$('msg').value.trim();
+  if(!msg){alert('Enter a message (Step 02) first.');return;}
+  try{
+    const cb=await crypto.subtle.encrypt({name:'AES-CBC',iv},ak,new TextEncoder().encode(msg));
+    ct=cb;
+    const ek2=await crypto.subtle.encrypt({name:'RSA-OAEP'},kp.publicKey,akr);
+    ek=ek2;
+    $('cipher-out').textContent=b64flat(cb);
+    $('enc-key-out').textContent=b64flat(ek2);
+    $('iv-disp').textContent=hex(iv);
+    $('enc-alert').classList.add('show');
+    unlock('card5');
+  }catch(e){$('cipher-out').textContent='Error: '+e.message;}
+}
+
+async function buildPackage(){
+  if(!ct||!ek||!kp){alert('Complete Steps 01–04 first.');return;}
+  const pu=await crypto.subtle.exportKey('spki',kp.publicKey);
+  const pkg={
+    project:'CryptoBridge',
+    algorithm:'AES-256-CBC + RSA-OAEP-SHA256',
+    timestamp:new Date().toISOString(),
+    ciphertext:b64flat(ct),
+    encryptedAESKey:b64flat(ek),
+    iv:hex(iv),
+    publicKey:'-----BEGIN PUBLIC KEY-----\n'+b64(pu)+'\n-----END PUBLIC KEY-----'
+  };
+  $('pkg-out').textContent=JSON.stringify(pkg,null,2);
+  $('btn-copy-pkg').style.display='';
+  $('btn-dl-pkg').style.display='';
+}
+
+function copyPackage(){
+  const txt=$('pkg-out').textContent;
+  if(txt.includes('Click')){alert('Build the package first.');return;}
+  navigator.clipboard.writeText(txt).then(()=>{
+    $('pkg-alert').style.display='flex';
+    $('pkg-alert').classList.add('show');
+    $('btn-copy-pkg').textContent='✓ Copied!';
+    setTimeout(()=>$('btn-copy-pkg').textContent='Copy Package to Clipboard',2000);
+  });
+}
+
+function downloadPackage(){
+  const txt=$('pkg-out').textContent;
+  if(txt.includes('Click')){alert('Build the package first.');return;}
+  const blob=new Blob([txt],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='cryptobridge_package_'+Date.now()+'.json';
+  a.click();
+}
+
+function copyField(id){
+  const txt=$(id).textContent;
+  if(txt==='—'){alert('No data yet.');return;}
+  navigator.clipboard.writeText(txt).then(()=>{
+    const el=$(id);
+    const old=el.style.borderColor;
+    el.style.borderColor='rgba(0,232,122,0.6)';
+    setTimeout(()=>el.style.borderColor=old,1200);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CryptoBridge — Receiver</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#05070a;--surface:#0d1117;--card:#111820;--border:#1e2d3d;--border2:#253547;
+--text:#e2eaf3;--muted:#5a7a99;--hint:#2d4558;
+--cyan:#00d4ff;--green:#00e87a;--amber:#ffb020;--purple:#b87fff;--red:#ff4d6d;
+--font-body:'Space Grotesk',sans-serif;
+--font-display:'Syne',sans-serif;
+--font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,232,122,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,232,122,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+.page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 20px 80px}
+
+header{text-align:center;padding:48px 0 36px}
+.pc-badge{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--green);background:rgba(0,232,122,0.06);border:1px solid rgba(0,232,122,0.25);border-radius:6px;padding:8px 18px;margin-bottom:24px;text-transform:uppercase;}
+.pc-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+header h1{font-family:var(--font-display);font-size:clamp(32px,5vw,58px);font-weight:800;letter-spacing:-2px;line-height:1;color:var(--text);margin-bottom:12px;}
+header h1 span{color:var(--green)}
+
+.how-box{background:rgba(0,232,122,0.03);border:1px solid rgba(0,232,122,0.15);border-radius:14px;padding:20px 24px;margin-bottom:32px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.how-step{text-align:center}
+.how-num{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--green);margin-bottom:6px}
+.how-txt{font-size:12px;color:var(--muted);line-height:1.6;font-weight:300}
+@media(max-width:600px){.how-box{grid-template-columns:1fr}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.card.glow-cyan{border-color:rgba(0,212,255,0.35);box-shadow:0 0 40px rgba(0,212,255,0.06)}
+.card.glow-green{border-color:rgba(0,232,122,0.35);box-shadow:0 0 40px rgba(0,232,122,0.06)}
+.card.locked{opacity:0.45;pointer-events:none}
+
+.card-head{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.015);}
+.step-num{width:34px;height:34px;border-radius:8px;font-family:var(--font-mono);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sn-c{background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)}
+.sn-g{background:rgba(0,232,122,0.1);color:var(--green);border:1px solid rgba(0,232,122,0.3)}
+.card-title{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:-0.3px}
+.card-sub{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.card-body{padding:22px}
+
+label.fl{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:18px}
+label.fl:first-child{margin-top:0}
+textarea,input[type=text]{width:100%;font-family:var(--font-mono);font-size:11.5px;font-weight:300;background:rgba(0,0,0,0.35);border:1px solid var(--border2);border-radius:10px;color:var(--text);padding:12px 16px;outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.7;}
+textarea:focus,input:focus{border-color:rgba(0,232,122,0.4);box-shadow:0 0 0 3px rgba(0,232,122,0.06);}
+
+.data-box{font-family:var(--font-mono);font-size:11px;font-weight:300;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;padding:12px 16px;word-break:break-all;white-space:pre-wrap;min-height:44px;max-height:140px;overflow-y:auto;line-height:1.75;color:var(--muted);}
+.data-box.c{border-color:rgba(0,212,255,0.25);background:rgba(0,212,255,0.04);color:#80e8ff}
+.data-box.g{border-color:rgba(0,232,122,0.25);background:rgba(0,232,122,0.04);color:#80ffb0}
+.data-box::-webkit-scrollbar{width:3px}
+.data-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+.btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+button{flex:1;min-width:130px;padding:12px 20px;border-radius:10px;font-family:var(--font-body);font-size:13px;font-weight:500;letter-spacing:0.3px;cursor:pointer;transition:all 0.2s;}
+button:active{transform:scale(0.97)}
+.btn-ghost{background:rgba(255,255,255,0.03);border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover{background:rgba(255,255,255,0.06)}
+.btn-cyan{background:linear-gradient(135deg,#003a52,#005a7a);border:1px solid rgba(0,212,255,0.35);color:#a0f0ff;box-shadow:0 4px 20px rgba(0,212,255,0.12)}
+.btn-cyan:hover{filter:brightness(1.15)}
+.btn-green{background:linear-gradient(135deg,#003320,#005038);border:1px solid rgba(0,232,122,0.35);color:#a0ffc8;box-shadow:0 4px 20px rgba(0,232,122,0.12)}
+.btn-green:hover{filter:brightness(1.15)}
+.btn-decrypt{background:linear-gradient(135deg,#003320,#004d28);border:1px solid rgba(0,232,122,0.5);color:#a0ffc8;font-size:15px;font-weight:700;padding:18px 24px;box-shadow:0 6px 30px rgba(0,232,122,0.2);flex:unset;width:100%;}
+.btn-decrypt:hover{filter:brightness(1.2)}
+
+.alert{display:none;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;margin-top:14px;font-size:13px;}
+.alert.show{display:flex;animation:rise 0.3s ease}
+.alert.success{background:rgba(0,232,122,0.06);border:1px solid rgba(0,232,122,0.22);color:var(--green)}
+.alert.info{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.22);color:var(--cyan)}
+.alert.error{background:rgba(255,77,109,0.06);border:1px solid rgba(255,77,109,0.25);color:#ff9999;display:flex;}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:blink 1.8s infinite}
+.success .alert-dot{background:var(--green)}
+.info .alert-dot{background:var(--cyan)}
+.error .alert-dot{background:var(--red);animation:none}
+
+.decoded-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+.decoded-row{display:flex;flex-direction:column;gap:6px}
+.decoded-label{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.decoded-val{font-family:var(--font-mono);font-size:11px;color:#80e8ff;word-break:break-all;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:8px;padding:8px 12px;max-height:60px;overflow-y:auto;}
+
+.success-reveal{text-align:center;padding:48px 32px;background:linear-gradient(135deg,rgba(0,232,122,0.05),rgba(0,212,255,0.04));border:1px solid rgba(0,232,122,0.25);border-radius:16px;margin-top:8px;animation:rise 0.5s ease;}
+.success-icon{font-size:52px;margin-bottom:16px}
+.success-label{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:14px}
+.success-msg{font-family:var(--font-display);font-size:clamp(18px,3vw,26px);font-weight:700;color:var(--text);word-break:break-word;line-height:1.5;margin-bottom:20px}
+.success-meta{font-family:var(--font-mono);font-size:10px;color:var(--muted);line-height:2}
+
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.chip{font-family:var(--font-mono);font-size:10px;padding:5px 12px;border-radius:6px;display:flex;flex-direction:column;gap:3px;}
+.chip .cl{opacity:0.6;font-size:9px}
+.chip .cv{font-weight:500}
+.chip-g{background:rgba(0,232,122,0.07);border:1px solid rgba(0,232,122,0.2);color:var(--green)}
+.chip-c{background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);color:var(--cyan)}
+
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* FOOTER */
+footer{text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:60px}
+.footer-logo{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--green);letter-spacing:1px;margin-bottom:6px}
+.footer-algo{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:20px}
+.footer-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:16px auto}
+.footer-by{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.footer-names{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--cyan);letter-spacing:0.5px;margin-bottom:8px}
+.footer-dept{font-family:var(--font-mono);font-size:12px;color:var(--green);letter-spacing:2px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="pc-badge"><div class="pc-dot"></div>CryptoBridge &nbsp;·&nbsp; Receiver</div>
+  <h1>Crypto<span>Bridge</span></h1>
+</header>
+
+<div class="how-box">
+  <div class="how-step">
+    <div class="how-num">YOU NEED</div>
+    <div class="how-txt">The <strong style="color:#e2eaf3">Private Key</strong> — transferred securely from the Sender (USB / secure channel)</div>
+  </div>
+  <div class="how-step">
+    <div class="how-num">YOU NEED</div>
+    <div class="how-txt">The <strong style="color:#e2eaf3">Transfer Package JSON</strong> — sent by the Sender over any channel</div>
+  </div>
+</div>
+
+<!-- STEP 1: Paste Private Key -->
+<div id="card1" class="card glow-cyan">
+  <div class="card-head">
+    <div class="step-num sn-c">01</div>
+    <div><div class="card-title">Paste Your Private Key</div></div>
+    <span class="card-sub">FROM SENDER</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.75;font-weight:300">
+      Paste the <strong style="color:var(--cyan)">RSA Private Key</strong> that the Sender generated and gave to you.
+      This key never travels with the encrypted package — it stays on your machine only.
+    </p>
+    <label class="fl">RSA Private Key (PEM format)</label>
+    <textarea id="priv-key-input" rows="7" placeholder="-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...
+-----END PRIVATE KEY-----"></textarea>
+
+    <div class="btn-row">
+      <button class="btn-cyan" onclick="loadPrivKey()">Load Private Key →</button>
+    </div>
+    <div class="alert info" id="privkey-alert">
+      <div class="alert-dot"></div>
+      <span id="privkey-msg">Private key loaded successfully.</span>
+    </div>
+    <div class="alert error" id="privkey-error">
+      <div class="alert-dot"></div>
+      <span id="privkey-error-msg">Error loading key.</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: Paste Transfer Package -->
+<div id="card2" class="card locked">
+  <div class="card-head">
+    <div class="step-num sn-g">02</div>
+    <div><div class="card-title">Paste Transfer Package from Sender</div></div>
+    <span class="card-sub">JSON PACKAGE</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.75;font-weight:300">
+      Paste the JSON Transfer Package that the Sender built and sent to you.
+      It contains the encrypted message, the RSA-wrapped AES key, and the IV.
+    </p>
+    <label class="fl">Transfer Package JSON</label>
+    <textarea id="pkg-input" rows="10" placeholder='{
+  "project": "CryptoBridge",
+  "algorithm": "AES-256-CBC + RSA-OAEP-SHA256",
+  "ciphertext": "...",
+  "encryptedAESKey": "...",
+  "iv": "...",
+  "publicKey": "-----BEGIN PUBLIC KEY-----..."
+}'></textarea>
+
+    <div class="btn-row">
+      <button class="btn-green" onclick="parsePackage()">Parse Package →</button>
+    </div>
+
+    <div id="parsed-fields" style="display:none">
+      <div style="margin-top:16px;font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:10px">Package Contents Verified ✓</div>
+      <div class="decoded-grid">
+        <div class="decoded-row">
+          <div class="decoded-label">Algorithm</div>
+          <div class="decoded-val" id="d-algo">—</div>
+        </div>
+        <div class="decoded-row">
+          <div class="decoded-label">Ciphertext (Base64, truncated)</div>
+          <div class="decoded-val" id="d-ct">—</div>
+        </div>
+        <div class="decoded-row">
+          <div class="decoded-label">Encrypted AES Key (Base64, truncated)</div>
+          <div class="decoded-val" id="d-ek">—</div>
+        </div>
+        <div class="decoded-row">
+          <div class="decoded-label">IV (hex)</div>
+          <div class="decoded-val" id="d-iv">—</div>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip chip-g"><span class="cl">Ciphertext</span><span class="cv" id="d-ct-len">—</span></div>
+        <div class="chip chip-c"><span class="cl">Enc. Key</span><span class="cv" id="d-ek-len">—</span></div>
+        <div class="chip chip-g"><span class="cl">IV</span><span class="cv">32 hex chars</span></div>
+      </div>
+    </div>
+
+    <div class="alert error" id="pkg-error">
+      <div class="alert-dot"></div>
+      <span id="pkg-error-msg">Invalid package. Make sure you paste the full JSON from the Sender.</span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: Decrypt -->
+<div id="card3" class="card locked" style="border-color:rgba(0,232,122,0.4);box-shadow:0 0 50px rgba(0,232,122,0.08)">
+  <div class="card-head">
+    <div class="step-num sn-g">03</div>
+    <div><div class="card-title">Decrypt &amp; Reveal Message</div></div>
+    <span class="card-sub">RSA UNWRAPS → AES DECRYPTS</span>
+  </div>
+  <div class="card-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.75;font-weight:300">
+      Your <strong style="color:var(--cyan)">private key</strong> unwraps the AES session key.
+      The recovered AES key then decrypts the ciphertext with the IV — revealing the original message.
+    </p>
+
+    <label class="fl">Step A — RSA unwraps the AES session key</label>
+    <div class="data-box c" id="dec-aes-out">—</div>
+
+    <label class="fl">Step B — AES decrypts ciphertext → original message</label>
+    <div class="data-box g" id="dec-plain-out">—</div>
+
+    <div class="btn-row" style="margin-top:20px">
+      <button class="btn-decrypt" onclick="decryptAll()">🔓 Decrypt Message</button>
+    </div>
+
+    <div class="alert error" id="dec-error">
+      <div class="alert-dot"></div>
+      <span id="dec-error-msg">Decryption failed. Make sure the private key matches the one the Sender used.</span>
+    </div>
+
+    <div id="dec-success-box" style="display:none;margin-top:20px">
+      <div class="success-reveal">
+        <div class="success-icon">✓</div>
+        <div class="success-label">Message Successfully Decrypted</div>
+        <div class="success-msg" id="dec-final-msg">—</div>
+        <div class="success-meta" id="dec-meta">—</div>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn-ghost" onclick="resetAll()">↺ Decrypt Another Message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<footer>
+  <div class="footer-logo">CryptoBridge</div>
+  <div class="footer-algo">AES-256-CBC + RSA-OAEP Hybrid Encryption &nbsp;·&nbsp; All operations run locally in browser</div>
+  <div class="footer-divider"></div>
+  <div class="footer-by">Developed by</div>
+  <div class="footer-names">Suganthan M &amp; Yashwanth Sakthi M</div>
+  <div class="footer-dept">Dept. of ECE &nbsp;|&nbsp; Networking Engineers</div>
+</footer>
+
+<script>
+let privKey=null, parsedPkg=null;
+const $=id=>document.getElementById(id);
+
+function unlock(id){$(id).classList.remove('locked');}
+
+function b64toBytes(b64str){
+  const clean=b64str.replace(/\s/g,'');
+  const bin=atob(clean);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return bytes.buffer;
+}
+function hextoBytes(hexStr){
+  const bytes=new Uint8Array(hexStr.length/2);
+  for(let i=0;i<bytes.length;i++) bytes[i]=parseInt(hexStr.substr(i*2,2),16);
+  return bytes;
+}
+function pemToBuffer(pem){
+  const base64=pem.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+  return b64toBytes(base64);
+}
+const hex=b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+
+async function loadPrivKey(){
+  const pem=$('priv-key-input').value.trim();
+  $('privkey-error').style.display='none';
+  $('privkey-alert').classList.remove('show');
+  if(!pem.includes('BEGIN PRIVATE KEY')){
+    $('privkey-error-msg').textContent='This does not look like a valid PEM private key. It should start with -----BEGIN PRIVATE KEY-----';
+    $('privkey-error').style.display='flex';
+    return;
+  }
+  try{
+    const keyBuf=pemToBuffer(pem);
+    privKey=await crypto.subtle.importKey('pkcs8',keyBuf,{name:'RSA-OAEP',hash:'SHA-256'},false,['decrypt']);
+    $('privkey-alert').classList.add('show');
+    $('privkey-msg').textContent='✓ Private key loaded successfully! Ready to receive packages.';
+    unlock('card2');
+  }catch(e){
+    $('privkey-error-msg').textContent='Failed to load key: '+e.message+'. Make sure you copied the full key including the BEGIN/END lines.';
+    $('privkey-error').style.display='flex';
+  }
+}
+
+function parsePackage(){
+  $('pkg-error').style.display='none';
+  $('parsed-fields').style.display='none';
+  const txt=$('pkg-input').value.trim();
+  try{
+    const pkg=JSON.parse(txt);
+    if(!pkg.ciphertext||!pkg.encryptedAESKey||!pkg.iv){
+      throw new Error('Missing required fields: ciphertext, encryptedAESKey, iv');
+    }
+    parsedPkg=pkg;
+    $('d-algo').textContent=pkg.algorithm||'AES-256-CBC + RSA-OAEP-SHA256';
+    $('d-ct').textContent=pkg.ciphertext.substring(0,80)+'…';
+    $('d-ek').textContent=pkg.encryptedAESKey.substring(0,80)+'…';
+    $('d-iv').textContent=pkg.iv;
+    $('d-ct-len').textContent=pkg.ciphertext.length+' chars';
+    $('d-ek-len').textContent=pkg.encryptedAESKey.length+' chars';
+    $('parsed-fields').style.display='block';
+    unlock('card3');
+  }catch(e){
+    $('pkg-error-msg').textContent='Invalid JSON package: '+e.message;
+    $('pkg-error').style.display='flex';
+  }
+}
+
+async function decryptAll(){
+  if(!privKey){alert('Load your private key (Step 01) first.');return;}
+  if(!parsedPkg){alert('Parse the transfer package (Step 02) first.');return;}
+  $('dec-error').style.display='none';
+  $('dec-success-box').style.display='none';
+  $('dec-aes-out').textContent='Decrypting…';
+  $('dec-plain-out').textContent='…';
+  try{
+    const encKeyBytes=b64toBytes(parsedPkg.encryptedAESKey);
+    const aesKeyRaw=await crypto.subtle.decrypt({name:'RSA-OAEP'},privKey,encKeyBytes);
+    $('dec-aes-out').textContent=hex(aesKeyRaw)+' (recovered AES-256 key)';
+    const aesKey=await crypto.subtle.importKey('raw',aesKeyRaw,{name:'AES-CBC'},false,['decrypt']);
+    const ivBytes=hextoBytes(parsedPkg.iv);
+    const ctBytes=b64toBytes(parsedPkg.ciphertext);
+    const plainBytes=await crypto.subtle.decrypt({name:'AES-CBC',iv:ivBytes},aesKey,ctBytes);
+    const plaintext=new TextDecoder().decode(plainBytes);
+    $('dec-plain-out').textContent=plaintext;
+    $('dec-final-msg').textContent=plaintext;
+    $('dec-meta').innerHTML='Algorithm: '+(parsedPkg.algorithm||'AES-256-CBC + RSA-OAEP')+'\nTimestamp: '+(parsedPkg.timestamp||'—')+'\nMessage length: '+plaintext.length+' characters';
+    $('dec-success-box').style.display='block';
+  }catch(e){
+    $('dec-aes-out').textContent='Failed.';
+    $('dec-plain-out').textContent='Failed.';
+    $('dec-error-msg').textContent='Decryption failed: '+e.message+'. Check that the private key matches the one the Sender used.';
+    $('dec-error').style.display='flex';
+  }
+}
+
+function resetAll(){
+  privKey=null; parsedPkg=null;
+  $('priv-key-input').value='';
+  $('pkg-input').value='';
+  $('dec-aes-out').textContent='—';
+  $('dec-plain-out').textContent='—';
+  $('dec-success-box').style.display='none';
+  $('privkey-alert').classList.remove('show');
+  $('parsed-fields').style.display='none';
+  ['card2','card3'].forEach(id=>$(id).classList.add('locked'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
